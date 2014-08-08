@@ -14,6 +14,7 @@ renderFrame = (frame) ->
   encoder.setQuality frame.quality
   encoder.setDither frame.dither
   encoder.setGlobalPalette frame.globalPalette
+  encoder.setPattern frame.pattern
   encoder.addFrame frame.data
   encoder.finish() if frame.last
   if frame.globalPalette == true

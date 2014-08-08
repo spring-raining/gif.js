@@ -81,6 +81,7 @@ function GIFEncoder(width, height) {
   this.sample = 10; // default sample interval for quantizer
   this.dither = false; // default dithering
   this.globalPalette = false;
+  this.pattern = false;
 
   this.out = new ByteArray();
 }
@@ -212,6 +213,15 @@ GIFEncoder.prototype.setGlobalPalette = function(palette) {
 };
 
 /*
+  Sets pattern method.
+  You can provide TRUE to filter all frames by Bayer pattern.
+  If dither is TRUE, this setting won't be considered.
+ */
+GIFEncoder.prototype.setPattern = function(pattern) {
+  this.pattern = pattern;
+};
+
+/*
   Returns global palette used for all frames.
   If setGlobalPalette(true) was used, then this function will return
   calculated palette after the first frame is added.
@@ -232,14 +242,24 @@ GIFEncoder.prototype.writeHeader = function() {
 */
 GIFEncoder.prototype.analyzePixels = function() {
   if (!this.colorTab) {
-    var imgq = new NeuQuant(this.pixels, this.sample);
-    imgq.buildColormap(); // create reduced palette
-    this.colorTab = imgq.getColormap();
+    // Because getGlobalPalette function returns a palette which consider only first frame,
+    // the latter flames may be unsatisfying.
+    // So it use the web safe palette as a global palette temporary.
+
+    if (this.globalPalette) {
+      this.colorTab = [0,0,0,0,0,51,0,0,102,0,0,153,0,0,204,0,0,255,0,51,0,0,51,51,0,51,102,0,51,153,0,51,204,0,51,255,0,102,0,0,102,51,0,102,102,0,102,153,0,102,204,0,102,255,0,153,0,0,153,51,0,153,102,0,153,153,0,153,204,0,153,255,0,204,0,0,204,51,0,204,102,0,204,153,0,204,204,0,204,255,0,255,0,0,255,51,0,255,102,0,255,153,0,255,204,0,255,255,51,0,0,51,0,51,51,0,102,51,0,153,51,0,204,51,0,255,51,51,0,51,51,51,51,51,102,51,51,153,51,51,204,51,51,255,51,102,0,51,102,51,51,102,102,51,102,153,51,102,204,51,102,255,51,153,0,51,153,51,51,153,102,51,153,153,51,153,204,51,153,255,51,204,0,51,204,51,51,204,102,51,204,153,51,204,204,51,204,255,51,255,0,51,255,51,51,255,102,51,255,153,51,255,204,51,255,255,102,0,0,102,0,51,102,0,102,102,0,153,102,0,204,102,0,255,102,51,0,102,51,51,102,51,102,102,51,153,102,51,204,102,51,255,102,102,0,102,102,51,102,102,102,102,102,153,102,102,204,102,102,255,102,153,0,102,153,51,102,153,102,102,153,153,102,153,204,102,153,255,102,204,0,102,204,51,102,204,102,102,204,153,102,204,204,102,204,255,102,255,0,102,255,51,102,255,102,102,255,153,102,255,204,102,255,255,153,0,0,153,0,51,153,0,102,153,0,153,153,0,204,153,0,255,153,51,0,153,51,51,153,51,102,153,51,153,153,51,204,153,51,255,153,102,0,153,102,51,153,102,102,153,102,153,153,102,204,153,102,255,153,153,0,153,153,51,153,153,102,153,153,153,153,153,204,153,153,255,153,204,0,153,204,51,153,204,102,153,204,153,153,204,204,153,204,255,153,255,0,153,255,51,153,255,102,153,255,153,153,255,204,153,255,255,204,0,0,204,0,51,204,0,102,204,0,153,204,0,204,204,0,255,204,51,0,204,51,51,204,51,102,204,51,153,204,51,204,204,51,255,204,102,0,204,102,51,204,102,102,204,102,153,204,102,204,204,102,255,204,153,0,204,153,51,204,153,102,204,153,153,204,153,204,204,153,255,204,204,0,204,204,51,204,204,102,204,204,153,204,204,204,204,204,255,204,255,0,204,255,51,204,255,102,204,255,153,204,255,204,204,255,255,255,0,0,255,0,51,255,0,102,255,0,153,255,0,204,255,0,255,255,51,0,255,51,51,255,51,102,255,51,153,255,51,204,255,51,255,255,102,0,255,102,51,255,102,102,255,102,153,255,102,204,255,102,255,255,153,0,255,153,51,255,153,102,255,153,153,255,153,204,255,153,255,255,204,0,255,204,51,255,204,102,255,204,153,255,204,204,255,204,255,255,255,0,255,255,51,255,255,102,255,255,153,255,255,204,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+    } else {
+      var imgq = new NeuQuant(this.pixels, this.sample);
+      imgq.buildColormap(); // create reduced palette    console.log(imgq.getColormap());
+      this.colorTab = imgq.getColormap();
+    }
   }
 
   // map image pixels to new palette
   if (this.dither) {
     this.ditherPixels(this.dither.replace('-serpentine', ''), this.dither.match(/-serpentine/) !== null);
+  } else if (this.pattern) {
+    this.patternPixels();
   } else {
     this.indexPixels();
   }
@@ -368,6 +388,22 @@ GIFEncoder.prototype.ditherPixels = function(kernel, serpentine) {
   }
 };
 
+GIFEncoder.prototype.patternPixels = function() {
+  var nPix = this.pixels.length / 3;
+  this.indexedPixels = new Uint8Array(nPix);
+  var k = 0;
+  for (var j = 0; j < nPix; j++) {
+    var index = this.findPatternedClosestRGB(
+      this.pixels[k++] & 0xff,
+      this.pixels[k++] & 0xff,
+      this.pixels[k++] & 0xff,
+      j % this.width, parseInt(j / this.width)
+    );
+    this.usedEntry[index] = true;
+    this.indexedPixels[j] = index;
+  }
+};
+
 /*
   Returns index of palette color closest to c
 */
@@ -398,6 +434,38 @@ GIFEncoder.prototype.findClosestRGB = function(r, g, b, used) {
   }
 
   return minpos;
+};
+
+/*
+  Returns index of palette color which filtered by Bayer pattern
+  (This method depends on web safe palette)
+ */
+GIFEncoder.prototype.findPatternedClosestRGB = function (r, g, b, x, y, used) {
+  if (this.colorTab === null) return -1;
+
+  var len = this.colorTab.length;
+  var bayerPattern = [
+    [ 0,  8,  2, 10],
+    [12,  4, 14,  6],
+    [ 3, 11,  1,  9],
+    [15,  7, 13,  5]
+  ];
+
+  var dr = (r % 51);
+  var dg = (g % 51);
+  var db = (b % 51);
+  dr = ((dr > bayerPattern[x%4][y%4] * 52/16 + 26/16)? 51 : 0) + parseInt(r / 51) * 51;
+  dg = ((dg > bayerPattern[(x+2)%4][y%4] * 52/16 + 26/16)? 51 : 0) + parseInt(g / 51) * 51;
+  db = ((db > bayerPattern[(x+1)%4][(y+2)%4] * 52/16 + 26/16)? 51 : 0) + parseInt(b / 51) * 51;
+  for (var i = 0; i < len; i += 3) {
+    var index = parseInt(i / 3);
+    if (!used || this.usedEntry[index]) {
+      if (this.colorTab[i] === dr && this.colorTab[i+1] === dg && this.colorTab[i+2] === db) {
+        return index;
+      }
+    }
+  }
+  return 0;
 };
 
 /*

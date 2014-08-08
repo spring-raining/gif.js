@@ -185,6 +185,7 @@ class GIF extends EventEmitter
       quality: @options.quality
       dither: @options.dither
       globalPalette: @options.globalPalette
+      pattern: @options.pattern
       repeat: @options.repeat
       canTransfer: (browser.name is 'chrome')
 
